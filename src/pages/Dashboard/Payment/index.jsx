@@ -24,7 +24,7 @@ export default function Payment() {
     //   console.log(response)
 
     //   const result = await axios.post(
-    //     'http://localhost:4000/tickets', { ticketTypeId: response.data.id },
+    //     'http://localhost:4000/tickets', { ticketTypeId: response. ?? },
     //     {
     //       headers: {
     //         Authorization: `Bearer ${token}`,
