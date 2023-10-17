@@ -1,6 +1,6 @@
 # drivent-front
 
-Front-end for Driven.t, an event management solution.
+Front-end for Driven.t, an event management solution!
 
 ## About
 
