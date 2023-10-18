@@ -1,3 +1,4 @@
+/*
 import styled from 'styled-components';
 import useEnrollment from '../../../hooks/api/useEnrollment';
 import useToken from '../../../hooks/useToken';
@@ -9,6 +10,8 @@ export default function Payment() {
   const { enrollment } = useEnrollment();
   const token = useToken();
   const [ticketType, setTicketType] = useState('');
+
+  console.log('enroll',enrollment)
 
   async function chooseOption() {
     // try {
@@ -84,7 +87,7 @@ export default function Payment() {
           </button>
         </ConfimationHeadline>
       ) : (
-        ''
+        'oiii'
       )}
 
       
@@ -164,4 +167,48 @@ const ConfimationHeadline = styled.div`
       cursor: pointer;
     }
   }
+`;
+*/
+
+import styled from 'styled-components';
+import Ticket from '../../../components/Ticket';
+import useEnrollment from '../../../hooks/api/useEnrollment';
+import OrderSummaryAfterPay from '../../../components/PaymentComponent/OrderSummaryAfterPay';
+import useGetTicket from '../../../hooks/api/useGetTicket';
+
+export default function Payment() {
+  const { enrollment } = useEnrollment();
+  const { ticket } = useGetTicket();
+
+  if(ticket) {
+    return (
+      <>
+        <Title>Ingresso e Pagamento</Title>
+        <OrderSummaryAfterPay ticket={ticket} />
+      </>
+    );
+  }
+
+  return (
+    <>
+      <Title>Ingresso e Pagamento</Title>
+      {enrollment ? <Ticket/> : 
+        <ErrorToAcess>Você precisa completar sua inscrição antes de prosseguir pra escolha de ingresso</ErrorToAcess>
+      }
+    </>
+  );
+}
+
+export const Title = styled.h4`
+  margin-bottom: 20px!important;
+`;
+
+export const ErrorToAcess = styled.div`
+  color: #8E8E8E;
+  width: 100%;
+  height: 90%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
 `;
