@@ -31,7 +31,7 @@ export default function Hotel() {
           </>
         }
 
-        {ticket.TicketType.includesHotel === true && ticket.status === 'PAID' &&
+        {hotels && ticket.TicketType.includesHotel === true && ticket.status === 'PAID' &&
           <>
             <SCTitle>Escolha de Hotel e Quarto</SCTitle>
             <SCSubTitle>Primeiro, escolha seu hotel</SCSubTitle>
