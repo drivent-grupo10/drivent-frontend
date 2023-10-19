@@ -1,5 +1,6 @@
 import styled from 'styled-components';
 import { useState } from 'react';
+import CreditCard from './CreditCard';
 
 export default function OrderSummaryAfterPay({ ticket }) {
   const [confirmed, setConfirmed] = useState(ticket?.status === 'PAID' ? true : false);
@@ -16,7 +17,7 @@ export default function OrderSummaryAfterPay({ ticket }) {
           <p>R$ {ticket.TicketType.price}</p>
         </DivSummary>
         <h3>Pagamento</h3>
-        {confirmed ? 'Vai para o componente de confirmacao de pagamento (ultima tela)': 'Vai para um componente de pagamento (onde vai ter parte de colocar cartao etc)'}        
+        <CreditCard ticketId={ticket.id}/>
       </ContainerOrderSummaryAfterPay>
     </>
   );
