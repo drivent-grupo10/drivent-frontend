@@ -14,10 +14,10 @@ export default function useAsync(handler, immediate = true) {
       setData(data);
       setLoading(false);
       return data;
-    } catch (err) {
+    } catch (error) {
       setError(error);
       setLoading(false);
-      throw err;
+      throw error;
     }
   };
 
