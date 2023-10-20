@@ -200,7 +200,14 @@ export default function Payment() {
 }
 
 export const Title = styled.h4`
-  margin-bottom: 20px!important;
+  font-family: 'Roboto', sans-serif;
+  font-size: 34px;
+  font-weight: 400;
+  line-height: 40px;
+  letter-spacing: 0em;
+  text-align: left;
+  color: #000000;
+  margin-bottom: 35px;
 `;
 
 export const ErrorToAcess = styled.div`
