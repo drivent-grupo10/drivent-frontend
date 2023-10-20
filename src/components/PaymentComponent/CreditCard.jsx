@@ -1,12 +1,16 @@
 import styled from 'styled-components';
 import { useState } from 'react';
 import Chip from '../../assets/images/chip.png';
+import usePayment from '../../hooks/api/usePayment';
+import { toast } from 'react-toastify';
 
 export default function CreditCard({ ticketId }) {
   const [cardNumber, setCardNumber] = useState('');
   const [name, setName] = useState('');
   const [validThru, setValidThru] = useState('');
   const [CVV, setCVV] = useState('');
+
+  const { loadingProcessPayment, paymentProcess } = usePayment();
 
   const handleCardNumber = (e) => {
     const valuesOfInput = e.target.value.replaceAll(" ", "");
@@ -60,28 +64,24 @@ export default function CreditCard({ ticketId }) {
   async function finishPayment(e) {
     e.preventDefault();
 
-    const body = {
-      ticketId: ticketId,
-      cardData: {
-        issuer: 'a',
-        number: cardNumber.replaceAll(" ", ""),
-        name: name,
-        expirationDate: validThru,
-        cvv: CVV
-      }
-    };
-    console.log(body);
-
-    /*
     try {
-      
-      (body); TO DO: API PAGAMENTO
+      const body = {
+        ticketId: ticketId,
+        cardData: {
+          issuer: 'Mastercard',
+          number: cardNumber.replaceAll(" ", ""),
+          name: name,
+          expirationDate: validThru,
+          cvv: CVV
+        }
+      };
+      const test = await paymentProcess(body);
+      console.log(test)
       toast('Pagamento realizado com sucesso!');
       navigate('/dashboard/hotel');
     } catch (err) {
-      toast('Não foi possível fazer o pagamento!');
+      toast('Não foi possível fazer o pagamento! ' + err);
     }
-    */
    
   }
 
