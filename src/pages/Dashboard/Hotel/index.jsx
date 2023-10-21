@@ -2,11 +2,54 @@ import { useEffect, useState } from "react";
 import useGetTicket from "../../../hooks/api/useGetTicket";
 import useGetHotels from "../../../hooks/api/useGetHotels";
 import { styled } from "styled-components";
+import useGetHotelWithRooms from "../../../hooks/api/useGetHotelsWithRooms";
+import { BsPerson } from 'react-icons/bs'
+import useToken from "../../../hooks/useToken";
+import { getHotels } from "../../../services/hotelApi";
+import api from '../../../services/api';
 
 export default function Hotel() {
   const { ticket } = useGetTicket();
-  const [status, setStatus] = useState(0);
+  const [selectedHotel, setSelectedHotel] = useState(0);
   const { hotels } = useGetHotels();
+  const [hotelsWithRooms, setHotelsWithRooms] = useState([]);
+  const [ indexOfHotel, setIndexOfHotel ] = useState(-1)
+
+  const arr = []
+
+  const token = useToken();
+
+  async function getHotel() {
+    try {
+      for (const hotel of hotels) {
+        const response = await api.get(`/hotels/${hotel.id}`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+        arr.push(response.data)
+      }
+      setHotelsWithRooms(arr)
+    } catch (err) {
+      console.error(err.message);
+    }
+  }
+
+  useEffect(() => {
+    if (hotels) {
+      getHotel();
+    }
+  }, [hotels])
+
+  function selectHotel(i){
+    const hotelId = hotelsWithRooms[i].id
+    setIndexOfHotel(i)
+    setSelectedHotel(hotelId)
+    
+    // const { hotelsWithRooms } = useGetHotelWithRooms(hotelId)
+    // console.log(hotelsWithRooms)
+    // setHotelsWithRooms(hotelsWithRooms)
+  }
 
   if (ticket){
     return (
@@ -37,14 +80,48 @@ export default function Hotel() {
             <SCSubTitle>Primeiro, escolha seu hotel</SCSubTitle>
             <SCContainer>
               {
-                hotels.map((h, i) => (
-                  <SCContainerHotel>
+                hotelsWithRooms.map((h, i) => (
+                  <SCContainerHotel key={i} onClick={() => selectHotel(i)} selected={selectedHotel === h.id}>
                     <SCHotelImage src={h.image}/>
-                    <SCHotelInfo>{h.name}</SCHotelInfo>
+                    <SCHotelInfo>
+                      {h.name}
+                      <SCStrongText>Tipos de acomodação:</SCStrongText>
+                      <SCText>Single e Double</SCText>
+                      <SCStrongText>Vagas Disponíveis:</SCStrongText>
+                      <SCText>{h.createdAt}</SCText>
+                    </SCHotelInfo>
                   </SCContainerHotel>
                 ))
               }
             </SCContainer>
+          </>
+        }
+
+        {selectedHotel !== 0 &&
+          <>
+            <SCSubTitle>Ótima pedida! Agora escolha seu quarto:</SCSubTitle>
+            <SCContainerRooms>
+              {hotelsWithRooms[indexOfHotel].Rooms.map((r, i) => (
+                <SCRoom key={i}>
+                  <SCRoomNumber>{r.name}</SCRoomNumber>
+                  {r.capacity === 1 &&
+                    <SCContainerPersonIcon>
+                      <SCPersonIcon />
+                    </SCContainerPersonIcon>}
+                  {r.capacity === 2 &&
+                    <SCContainerPersonIcon>
+                      <SCPersonIcon />
+                      <SCPersonIcon />
+                    </SCContainerPersonIcon>}
+                  {r.capacity === 3 &&
+                    <SCContainerPersonIcon>
+                      <SCPersonIcon />
+                      <SCPersonIcon />
+                      <SCPersonIcon />
+                    </SCContainerPersonIcon>}
+                </SCRoom>
+              ))}
+            </SCContainerRooms>
           </>
         }
     </>
@@ -86,7 +163,7 @@ const SCError = styled.p`
 const SCSubTitle = styled.p`
   margin-top: 36px;
 
-  font-family: Roboto;
+  font-family: 'Roboto', sans-serif;
   font-size: 20px;
   font-weight: 400;
   line-height: 23px;
@@ -116,7 +193,9 @@ const SCContainerHotel = styled.div`
 
   padding: 16px 14px 16px 14px;
 
-  background-color: #ebebeb;
+  background-color: ${props => props.selected ? '#FFEED2' : '#ebebeb'};
+
+  cursor: pointer;
 `
 
 const SCHotelImage = styled.img`
@@ -129,4 +208,76 @@ const SCHotelImage = styled.img`
 
 const SCHotelInfo = styled.div`
   margin-top: 10px;
+`
+
+const SCStrongText = styled.p`
+  font-family: 'Roboto', sans-serif;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 14px;
+  letter-spacing: 0em;
+  text-align: left;
+
+  color: #3c3c3c;
+
+  margin-top: 12px;
+
+`
+
+const SCText = styled.p`
+  font-family: 'Roboto', sans-serif;
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 14px;
+  letter-spacing: 0em;
+  text-align: left;
+
+  color: #3c3c3c;
+
+  margin-top: 2px;
+`
+
+const SCContainerRooms = styled.div`
+  margin-top: 33px;
+
+  display: flex;
+  flex-wrap: wrap;
+`
+
+const SCRoom = styled.div`
+  width: 190px;
+  height: 45px;
+
+  margin-right: 17px;
+  margin-top: 8px;
+
+  border: 1px solid #cecece;
+  border-radius: 10px;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  padding: 0 9px 0 16px;
+`
+
+const SCRoomNumber = styled.p`
+  font-family: 'Roboto', sans-serif;
+  font-size: 20px;
+  font-weight: 700;
+  line-height: 23px;
+  letter-spacing: 0em;
+  text-align: center;
+
+  color: #454545;
+`
+
+const SCContainerPersonIcon = styled.div`
+  display: flex;
+  justify-content: space-between;
+`
+
+const SCPersonIcon = styled(BsPerson)`
+  width: 27px;
+  height: 27px;
 `
