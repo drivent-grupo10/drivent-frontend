@@ -11,6 +11,7 @@ import api from '../../../services/api';
 export default function Hotel() {
   const { ticket } = useGetTicket();
   const [selectedHotel, setSelectedHotel] = useState(0);
+  const [selectedRoom, setSelectedRoom] = useState(0);
   const { hotels } = useGetHotels();
   const [hotelsWithRooms, setHotelsWithRooms] = useState([]);
   const [ indexOfHotel, setIndexOfHotel ] = useState(-1)
@@ -45,6 +46,12 @@ export default function Hotel() {
     const hotelId = hotelsWithRooms[i].id
     setIndexOfHotel(i)
     setSelectedHotel(hotelId)
+    setSelectedRoom(0)
+  }
+
+  function selectRoom(i){
+    const roomId = hotelsWithRooms[indexOfHotel].Rooms[i].id
+    setSelectedRoom(roomId)
   }
 
   function verifyRoomTypes(Rooms) {
@@ -77,7 +84,7 @@ export default function Hotel() {
     }else if (single === false && double === true && triple === true){
       return 'Double e Triple'
     }if (single === true && double === true && triple === true){
-      return 'Single, Double e Triple'
+      return 'Single, Double e Triple' 
     }
   }
 
@@ -142,7 +149,7 @@ export default function Hotel() {
             <SCSubTitle>Ótima pedida! Agora escolha seu quarto:</SCSubTitle>
             <SCContainerRooms>
               {hotelsWithRooms[indexOfHotel].Rooms.map((r, i) => (
-                <SCRoom key={i}>
+                <SCRoom key={i} onClick={() => selectRoom(i)} selected={selectedRoom === r.id}>
                   <SCRoomNumber>{r.name}</SCRoomNumber>
                   {r.capacity === 1 &&
                     <SCContainerPersonIcon>
@@ -162,6 +169,14 @@ export default function Hotel() {
                 </SCRoom>
               ))}
             </SCContainerRooms>
+          </>
+        }
+
+        {selectedHotel !== 0 && selectedRoom !== 0 &&
+          <>
+            <SCBookRoom>
+              Reservar Quarto
+            </SCBookRoom>
           </>
         }
     </>
@@ -299,6 +314,10 @@ const SCRoom = styled.div`
   justify-content: space-between;
 
   padding: 0 9px 0 16px;
+
+  cursor: pointer;
+
+  background-color: ${props => props.selected ? '#FFEED2' : '#ebebeb'};
 `
 
 const SCRoomNumber = styled.p`
@@ -320,4 +339,31 @@ const SCContainerPersonIcon = styled.div`
 const SCPersonIcon = styled(BsPerson)`
   width: 27px;
   height: 27px;
+`
+
+const SCBookRoom = styled.div`
+  width: 182px;
+  height: 37px;
+
+  border: none;
+  border-radius: 4px;
+
+  background-color: #E0E0E0;
+
+  font-family: 'Roboto', sans-serif;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 16px;
+  letter-spacing: 0em;
+  text-align: center;
+
+  color: #000000;
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  margin-top: 46px;
+
+  cursor: pointer;
 `
