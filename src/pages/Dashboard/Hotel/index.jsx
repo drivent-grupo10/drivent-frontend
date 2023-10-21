@@ -45,10 +45,50 @@ export default function Hotel() {
     const hotelId = hotelsWithRooms[i].id
     setIndexOfHotel(i)
     setSelectedHotel(hotelId)
-    
-    // const { hotelsWithRooms } = useGetHotelWithRooms(hotelId)
-    // console.log(hotelsWithRooms)
-    // setHotelsWithRooms(hotelsWithRooms)
+  }
+
+  function verifyRoomTypes(Rooms) {
+    let single = false
+    let double = false
+    let triple = false
+
+    for (let i = 0; i < Rooms.length; i++){
+      if (Rooms[i].capacity === 1){
+        single = true;
+      }
+      if (Rooms[i].capacity === 2){
+        double = true;
+      }
+      if (Rooms[i].capacity === 1){
+        triple = true;
+      }
+    }
+
+    if (single === true && double === false && triple === false){
+      return 'Single'
+    }else if (single === false && double === true && triple === false){
+      return 'Double'
+    }else if (single === false && double === false && triple === true){
+      return 'Triple'
+    }else if (single === true && double === true && triple === false){
+      return 'Single e Double'
+    }else if (single === true && double === false && triple === true){
+      return 'Single e Triple'
+    }else if (single === false && double === true && triple === true){
+      return 'Double e Triple'
+    }if (single === true && double === true && triple === true){
+      return 'Single, Double e Triple'
+    }
+  }
+
+  function countRooms(Rooms) {
+    let sum = 0
+
+    for (let i = 0; i < Rooms.length; i++){
+      sum += Rooms[i].capacity
+    }
+
+    return sum
   }
 
   if (ticket){
@@ -86,9 +126,9 @@ export default function Hotel() {
                     <SCHotelInfo>
                       {h.name}
                       <SCStrongText>Tipos de acomodação:</SCStrongText>
-                      <SCText>Single e Double</SCText>
+                      <SCText>{verifyRoomTypes(h.Rooms)}</SCText>
                       <SCStrongText>Vagas Disponíveis:</SCStrongText>
-                      <SCText>{h.createdAt}</SCText>
+                      <SCText>{countRooms(h.Rooms)}</SCText>
                     </SCHotelInfo>
                   </SCContainerHotel>
                 ))
