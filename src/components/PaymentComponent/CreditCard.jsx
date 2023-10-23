@@ -75,10 +75,11 @@ export default function CreditCard({ ticketId }) {
           cvv: CVV
         }
       };
-      const test = await paymentProcess(body);
-      console.log(test)
+      await paymentProcess(body);
       toast('Pagamento realizado com sucesso!');
-      navigate('/dashboard/hotel');
+      setTimeout(() => {
+        window.location.reload();
+      }, 2000);
     } catch (err) {
       toast('Não foi possível fazer o pagamento! ' + err);
     }
