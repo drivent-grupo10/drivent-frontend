@@ -4,9 +4,11 @@ import useGetHotels from "../../../hooks/api/useGetHotels";
 import { styled } from "styled-components";
 import useGetHotelWithRooms from "../../../hooks/api/useGetHotelsWithRooms";
 import { BsPerson } from 'react-icons/bs'
+import { BsPersonFill } from 'react-icons/bs'
 import useToken from "../../../hooks/useToken";
 import { getHotels } from "../../../services/hotelApi";
 import api from '../../../services/api';
+import useGetBooking from "../../../hooks/api/useGetBooking";
 
 export default function Hotel() {
   const { ticket } = useGetTicket();
@@ -14,7 +16,8 @@ export default function Hotel() {
   const [selectedRoom, setSelectedRoom] = useState(0);
   const { hotels } = useGetHotels();
   const [hotelsWithRooms, setHotelsWithRooms] = useState([]);
-  const [ indexOfHotel, setIndexOfHotel ] = useState(-1)
+  const [indexOfHotel, setIndexOfHotel] = useState(-1);
+  const [indexOfRoom, setIndexOfRoom] = useState(-1);
 
   const arr = []
 
@@ -42,15 +45,16 @@ export default function Hotel() {
     }
   }, [hotels])
 
-  function selectHotel(i){
+  function selectHotel(i) {
     const hotelId = hotelsWithRooms[i].id
     setIndexOfHotel(i)
     setSelectedHotel(hotelId)
     setSelectedRoom(0)
   }
 
-  function selectRoom(i){
+  function selectRoom(i) {
     const roomId = hotelsWithRooms[indexOfHotel].Rooms[i].id
+    setIndexOfRoom(i)
     setSelectedRoom(roomId)
   }
 
@@ -59,48 +63,52 @@ export default function Hotel() {
     let double = false
     let triple = false
 
-    for (let i = 0; i < Rooms.length; i++){
-      if (Rooms[i].capacity === 1){
+    for (let i = 0; i < Rooms.length; i++) {
+      if (Rooms[i].capacity === 1) {
         single = true;
       }
-      if (Rooms[i].capacity === 2){
+      if (Rooms[i].capacity === 2) {
         double = true;
       }
-      if (Rooms[i].capacity === 1){
+      if (Rooms[i].capacity === 1) {
         triple = true;
       }
     }
 
-    if (single === true && double === false && triple === false){
+    if (single === true && double === false && triple === false) {
       return 'Single'
-    }else if (single === false && double === true && triple === false){
+    } else if (single === false && double === true && triple === false) {
       return 'Double'
-    }else if (single === false && double === false && triple === true){
+    } else if (single === false && double === false && triple === true) {
       return 'Triple'
-    }else if (single === true && double === true && triple === false){
+    } else if (single === true && double === true && triple === false) {
       return 'Single e Double'
-    }else if (single === true && double === false && triple === true){
+    } else if (single === true && double === false && triple === true) {
       return 'Single e Triple'
-    }else if (single === false && double === true && triple === true){
+    } else if (single === false && double === true && triple === true) {
       return 'Double e Triple'
-    }if (single === true && double === true && triple === true){
-      return 'Single, Double e Triple' 
+    } if (single === true && double === true && triple === true) {
+      return 'Single, Double e Triple'
     }
   }
 
-  function countRooms(Rooms) {
-    let sum = 0
+  function countRooms(Rooms, i) {
+    let total = 0
+    let occupied = 0
 
-    for (let i = 0; i < Rooms.length; i++){
-      sum += Rooms[i].capacity
+    for (let j = 0; j < Rooms.length; j++) {
+      total += Rooms[j].capacity
+      occupied += Rooms[j].Booking.length
     }
+
+    const sum = total - occupied
 
     return sum
   }
 
-  if (ticket){
+  if (ticket) {
     return (
-    <>
+      <>
         {ticket.status !== 'PAID' &&
           <>
             <SCTitle>Escolha de Hotel e Quarto</SCTitle>
@@ -129,13 +137,13 @@ export default function Hotel() {
               {
                 hotelsWithRooms.map((h, i) => (
                   <SCContainerHotel key={i} onClick={() => selectHotel(i)} selected={selectedHotel === h.id}>
-                    <SCHotelImage src={h.image}/>
+                    <SCHotelImage src={h.image} />
                     <SCHotelInfo>
                       {h.name}
                       <SCStrongText>Tipos de acomodação:</SCStrongText>
                       <SCText>{verifyRoomTypes(h.Rooms)}</SCText>
                       <SCStrongText>Vagas Disponíveis:</SCStrongText>
-                      <SCText>{countRooms(h.Rooms)}</SCText>
+                      <SCText>{countRooms(h.Rooms, i)}</SCText>
                     </SCHotelInfo>
                   </SCContainerHotel>
                 ))
@@ -149,22 +157,55 @@ export default function Hotel() {
             <SCSubTitle>Ótima pedida! Agora escolha seu quarto:</SCSubTitle>
             <SCContainerRooms>
               {hotelsWithRooms[indexOfHotel].Rooms.map((r, i) => (
-                <SCRoom key={i} onClick={() => selectRoom(i)} selected={selectedRoom === r.id}>
-                  <SCRoomNumber>{r.name}</SCRoomNumber>
+                <SCRoom
+                  key={i}
+                  disabled={hotelsWithRooms[indexOfHotel].Rooms[i].Booking.length === r.capacity}
+                  onClick={() => selectRoom(i)}
+                  selected={selectedRoom === r.id}
+                >
+                  <SCRoomNumber full={(hotelsWithRooms[indexOfHotel].Rooms[i].Booking.length === r.capacity).toString()}>{r.name}</SCRoomNumber>
                   {r.capacity === 1 &&
                     <SCContainerPersonIcon>
-                      <SCPersonIcon />
+                      {hotelsWithRooms[indexOfHotel].Rooms[i].Booking.length === 1 ? <SCOccupiedRoom /> : <SCFreeRoom />}
                     </SCContainerPersonIcon>}
-                  {r.capacity === 2 &&
+                  {r.capacity === 2 && hotelsWithRooms[indexOfHotel].Rooms[i].Booking.length === 2 &&
                     <SCContainerPersonIcon>
-                      <SCPersonIcon />
-                      <SCPersonIcon />
+                      <SCOccupiedRoom />
+                      <SCOccupiedRoom />
                     </SCContainerPersonIcon>}
-                  {r.capacity === 3 &&
+                  {r.capacity === 2 && hotelsWithRooms[indexOfHotel].Rooms[i].Booking.length === 1 &&
                     <SCContainerPersonIcon>
-                      <SCPersonIcon />
-                      <SCPersonIcon />
-                      <SCPersonIcon />
+                      <SCFreeRoom />
+                      <SCOccupiedRoom />
+                    </SCContainerPersonIcon>}
+                  {r.capacity === 2 && hotelsWithRooms[indexOfHotel].Rooms[i].Booking.length === 0 &&
+                    <SCContainerPersonIcon>
+                      <SCFreeRoom />
+                      <SCFreeRoom />
+                    </SCContainerPersonIcon>}
+                  {r.capacity === 3 && hotelsWithRooms[indexOfHotel].Rooms[i].Booking.length === 3 &&
+                    <SCContainerPersonIcon>
+                      <SCOccupiedRoom />
+                      <SCOccupiedRoom />
+                      <SCOccupiedRoom />
+                    </SCContainerPersonIcon>}
+                  {r.capacity === 3 && hotelsWithRooms[indexOfHotel].Rooms[i].Booking.length === 2 &&
+                    <SCContainerPersonIcon>
+                      <SCFreeRoom />
+                      <SCOccupiedRoom />
+                      <SCOccupiedRoom />
+                    </SCContainerPersonIcon>}
+                  {r.capacity === 3 && hotelsWithRooms[indexOfHotel].Rooms[i].Booking.length === 1 &&
+                    <SCContainerPersonIcon>
+                      <SCFreeRoom />
+                      <SCFreeRoom />
+                      <SCOccupiedRoom />
+                    </SCContainerPersonIcon>}
+                  {r.capacity === 3 && hotelsWithRooms[indexOfHotel].Rooms[i].Booking.length === 0 &&
+                    <SCContainerPersonIcon>
+                      <SCFreeRoom />
+                      <SCFreeRoom />
+                      <SCFreeRoom />
                     </SCContainerPersonIcon>}
                 </SCRoom>
               ))}
@@ -179,8 +220,8 @@ export default function Hotel() {
             </SCBookRoom>
           </>
         }
-    </>
-  );
+      </>
+    );
   }
 }
 
@@ -299,7 +340,7 @@ const SCContainerRooms = styled.div`
   flex-wrap: wrap;
 `
 
-const SCRoom = styled.div`
+const SCRoom = styled.button`
   width: 190px;
   height: 45px;
 
@@ -328,7 +369,7 @@ const SCRoomNumber = styled.p`
   letter-spacing: 0em;
   text-align: center;
 
-  color: #454545;
+  color: ${props => props.full === 'true' ? '#9D9D9D' : '#454545'};
 `
 
 const SCContainerPersonIcon = styled.div`
@@ -336,7 +377,12 @@ const SCContainerPersonIcon = styled.div`
   justify-content: space-between;
 `
 
-const SCPersonIcon = styled(BsPerson)`
+const SCFreeRoom = styled(BsPerson)`
+  width: 27px;
+  height: 27px;
+`
+
+const SCOccupiedRoom = styled(BsPersonFill)`
   width: 27px;
   height: 27px;
 `
