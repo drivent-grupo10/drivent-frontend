@@ -1,18 +1,67 @@
 import styled from 'styled-components';
 import useGetTicket from '../../../hooks/api/useGetTicket';
+import { useEffect, useState } from 'react';
+import useGetActivityDays from '../../../hooks/api/useGetActivities';
+import useGetActivityOfDay from '../../../hooks/api/useGetActivitieOfDay';
+import dayjs from 'dayjs';
+import './pt'
+import customParseFormat from 'dayjs/plugin/customParseFormat';
+
+dayjs.locale('pt');
+
+dayjs.extend(customParseFormat);
+
+
+function convertData(arraydata) {
+  for (let i = 0; i < arraydata.length; i++) {
+    arraydata[i].startAt = dayjs(arraydata[i].startAt).format();
+    arraydata[i].endAt = dayjs(arraydata[i].endAt).format();
+    arraydata[i].createdAt = dayjs(arraydata[i].createdAt).format();
+    arraydata[i].updatedAt = dayjs(arraydata[i].updatedAt).format();
+    arraydata[i].Auditory.createdAt = dayjs(arraydata[i].Auditory.createdAt).format();
+    arraydata[i].Auditory.createdAt = arraydata[i].Auditory.createdAt.slice(0, 10);
+    arraydata[i].Auditory.updatedAt = dayjs(arraydata[i].Auditory.updatedAt).format();
+    arraydata[i].Auditory.updatedAt = arraydata[i].Auditory.updatedAt.slice(0, 10);
+    arraydata[i].createdAt = arraydata[i].createdAt.slice(0, 10);
+    arraydata[i].endAt = arraydata[i].endAt.slice(0, 10);
+    arraydata[i].startAt = arraydata[i].startAt.slice(0, 10);
+    arraydata[i].updatedAt = arraydata[i].updatedAt.slice(0, 10);
+
+  }
+  return arraydata;
+}
 
 export default function Activities() {
+  const [dateData, setDateData] = useState(null);
+  const [selectedDay, setSelectedDay] = useState(null);
+  const { getactivitydays } = useGetActivityDays();
+  const { getactivityofday } = useGetActivityOfDay();
+  const [data, setData] = useState();
 
   const { ticket } = useGetTicket();
-  console.log(ticket)
 
-  if(!ticket) {
+  useEffect(() => {
+    getactivitydays()
+      .then((res) => {
+        const data = convertData(res);
+        console.log(data)
+        setDateData(data);
+      });
+  }, []);
+
+  useEffect(() => {
+    if (selectedDay) {
+      getactivityofday(selectedDay).then((res) => { setData(res); });
+    };
+  }, [selectedDay]);
+
+  if (!ticket) {
     return (
       <>
         <SCTitle>Escolha de Atividades</SCTitle>
         <SCContainerError>
           <SCError>
-          Você ainda não tem um ticket! Volte para a página de inscrição!
+            Você ainda não tem um ticket! Volte para a página de inscrição!
           </SCError>
         </SCContainerError>
       </>
@@ -46,12 +95,30 @@ export default function Activities() {
   return (
     <Container>
       <h1>Escolha de atividades</h1>
-      <h2>Primeiro, filtre pelo dia do evento: </h2>
-      <EventsContainer>
-        <EventDay>
-          Mostrar atividades
-        </EventDay>
-      </EventsContainer>
+
+      {selectedDay == null ?
+        <SubTitle>
+          Primeiro, filtre pelo dia do evento:
+        </SubTitle> : null}
+      <ContainerSecond>
+        {dateData?.map((el, index) => {
+          return <ActivityDate
+            key={index}
+            selected={selectedDay === el}
+            onClick={() => { setSelectedDay(el); }}>
+            {new Date(el.startAt)
+              .toLocaleDateString('pt-BR', {
+                weekday: 'long',
+                day: 'numeric',
+                month: 'numeric',
+              })
+              .replace('-feira', '')}
+          </ActivityDate>;
+        })}
+      </ContainerSecond>
+      {selectedDay == null ? null : <GridVenue>
+        {console.log(data)}
+      </GridVenue>}
     </Container>
   )
 }
@@ -60,101 +127,9 @@ export default function Activities() {
 const Container = styled.div`
   h1 {
     font-size: 34px;
+    margin-bottom: 30px;
   }
   height: 100%;
-  h2 {
-    color: #8e8e8e;
-    margin-top: 37px;
-    margin-bottom: 23px;
-  }
-`;
-
-const EventsContainer = styled.div`
-  display: flex;
-`;
-
-const EventDay = styled.div`
-  width: 131px;
-  height: 37px;
-  background: #e0e0e0;
-  box-shadow: 0px 2px 10px rgba(0, 0, 0, 0.25);
-  border-radius: 4px;
-  margin-right: 17px;
-  text-align: center;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-`;
-
-const Att = styled.div`
-  display: flex;
-
-  h1 {
-    font-size: 17px;
-    color: #7b7b7b;
-    text-align: center;
-  }
-
-  margin: auto;
-  margin-top: 20px;
-`;
-
-const ActBox = styled.div`
-  display: flex;
-  flex-direction: column;
-  width: 288px;
-`;
-
-const InnerActBox = styled.div`
-  border: 1px solid #d7d7d7;
-  height: 100%;
-  margin-bottom: 10px;
-  box-sizing: border-box;
-  padding: 10px;
-
-  div {
-    display: flex;
-    align-content: center;
-    align-items: center;
-    justify-content: space-between;
-    border-radius: 5px;
-    background: #f1f1f1;
-    font-size: 14px;
-    color: #343434;
-    box-sizing: border-box;
-    padding: 10px;
-
-    p {
-      width: 180px;
-    }
-  }
-
-  section {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: 5px;
-    width: 50px;
-    hr {
-      height: 60px;
-      width: 1px;
-      background-color: #cfcfcf;
-      border: none;
-    }
-
-    p {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      text-align: center;
-      font-size: 9px;
-      ion-icon {
-        font-size: 24px;
-      }
-    }
-  }
 `;
 
 
@@ -188,3 +163,46 @@ const SCError = styled.p`
 
   color: #8e8e8e;
 `
+
+const SubTitle = styled.span(() => ({
+  color: '#8E8E8E',
+  marginTop: '20px',
+  fontSize: '20px',
+  lineHeight: '23px',
+}));
+
+const ContainerSecond = styled.div`
+  width: 420px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 17px;
+  margin-bottom: 60px;
+`;
+
+const ActivityDate = styled.div`
+  width: 131px;
+  height:37px;
+  background-color: ${(props) => (props.selected ? '#FFD37D' : '#e0e0e0')};
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-top: 23px;
+  box-shadow: 0px 2px 10px rgba(0, 0, 0, 0.25);
+  border-radius: 4px;
+  cursor: pointer;
+  font-family: 'Roboto';
+  font-style: normal;
+  font-weight: 400;
+  font-size: 14px;
+  line-height: 16px;
+  text-align: center;
+`;
+
+const GridVenue = styled.div`
+  display: flex;
+  min-height: 365px;
+  height: auto;
+  width: 100%;
+  margin: 0 0 55px 0;
+`;
