@@ -1,70 +1,40 @@
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import styled from "styled-components";
 import { BiLogIn, BiXCircle } from "react-icons/bi";
+import useGetActivityByPlace from "../../hooks/api/useGetActivitiesByPlace";
+import dayjs from "dayjs";
 
-export default function ActivitiesComp() {
-  console.log(asd)
-  const [activities, setActivities] = useState([
-    {
-      place: "Auditório Principal",
-      event: [
-        {
-          title: "Minecraft, montando o PC ideal",
-          time: "09:00 - 10:00",
-          vacancies: 27
-        },
-        {
-          title: "LoL, montando o PC ideal",
-          time: "10:00 - 11:00",
-          vacancies: 0
-        }
-      ]
-    },
-    {
-      place: "Auditório lateral",
-      event: [
-        {
-          title: "Palestra X",
-          time: "09:00 - 11:00",
-          vacancies: 0
-        }
-      ]
-    },
-    {
-      place: "Sala de Workshop",
-      event: [
-        {
-          title: "Palestra Y",
-          time: "09:00 - 10:00",
-          vacancies: 32
-        },
-        {
-          title: "Palestra Z",
-          time: "10:00 - 11:00",
-          vacancies: 11
-        }
-      ]
-    }
-  ]);
+export default function ActivitiesComp({ date }) {
+  console.log("Data: " + date)
+  const [activities, setActivities] = useState([]);
 
+  const { getActivitiesPlace } = useGetActivityByPlace(date);
+
+  useEffect(() => {
+    getActivitiesPlace()
+      .then((res) => {
+        setActivities(res)
+      });
+  }, [date]);
 
   return (
     <MainContainer>
       {activities.map((activity, index1) => (
-        <SecondContainer>
-          <Title>{activity.place}</Title>
-          <ActivityContainer key={index1}>
-            {activity.event.map((lecture, index2) => (
-              <Activity key={index2}>
-                <p><strong>{lecture.title}</strong>
-                <br />{lecture.time}</p>
-                {lecture.vacancies ?
+        <SecondContainer key={index1}>
+          <Title>{activity.name}</Title>
+          <ActivityContainer>
+            {activity.Activities.map((lecture, index2) => (
+              <Activity key={index2} 
+                height={ new Date(lecture.endAt).getHours() - new Date(lecture.startAt).getHours()}>
+                <p><strong>{lecture.name}</strong>
+                <br />{dayjs(lecture.startAt).format('HH')}:{dayjs(lecture.startAt).format('mm')} - {dayjs(lecture.endAt).format('HH')}:{dayjs(lecture.endAt).format('mm')}</p>
+                {lecture.capacity ?
                   <Vacancies>
                     <BiLogIn color="#078632" size={25}/>
-                    <p>{lecture.vacancies} vagas</p>
+                    <p>{lecture.capacity} vagas</p>
                   </Vacancies>
                   :
-                  <Vacancies>
+                  <Vacancies onClick={() => console.log("oi")}>
                     <BiXCircle color="#CC6666" size={25}/>
                     <p>Esgotado</p>
                   </Vacancies>
@@ -87,22 +57,28 @@ const SecondContainer = styled.div`
   
 `;
 
-const Title = styled.h1`
+const Title = styled.p`
   color: #7B7B7B;
-  font-size: 17px;
+  font-size: 24px;
   margin-bottom: 10px;
   margin-top: 20px;
   text-align: center;
 `;
 
 const ActivityContainer = styled.div`
+  width: 295px;
   padding: 10px;
   border: 1px solid #D7D7D7;
-  color: #343434;
   height: 450px;
+  overflow-y: scroll;
 `;
 
-const Activity = styled.div`
+const Activity = styled.button`
+  text-align: start;
+  color: #343434;
+  font-weight: 400;
+  cursor: pointer;
+  border: none;
   display: flex;
   position: relative;
   justify-content: space-between;
@@ -110,7 +86,7 @@ const Activity = styled.div`
   background-color: #F1F1F1;
   padding: 10px;
   border-radius: 5px;
-  height: 80px;
+  height: ${props => 80 * props.height}px;
   font-size: 12px;
   line-height: 20px;
   margin-bottom: 10px;
@@ -119,7 +95,6 @@ const Activity = styled.div`
 
 const Vacancies = styled.div`
   width: 60px;
-  cursor: pointer;
   display: flex;
   justify-content: center;
   flex-direction: column;
