@@ -28,3 +28,12 @@ export async function getActivitiesByPlace(token, date) {
   });
   return response.data;
 }
+
+export async function postActivitiesBookings(token, ActId) {
+  const response = await api.post(`/activities/${ActId}`, null, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+  return response.data;
+}

@@ -3,12 +3,17 @@ import styled from "styled-components";
 import { BiLogIn, BiXCircle } from "react-icons/bi";
 import useGetActivityByPlace from "../../hooks/api/useGetActivitiesByPlace";
 import dayjs from "dayjs";
+import { toast } from "react-toastify";
+import useToken from "../../hooks/useToken";
+import { postActivitiesBookings } from "../../services/activitiesApi";
 
 export default function ActivitiesComp({ date }) {
   console.log("Data: " + date)
   const [activities, setActivities] = useState([]);
+  const token = useToken();
 
   const { getActivitiesPlace } = useGetActivityByPlace(date);
+
 
   useEffect(() => {
     getActivitiesPlace()
@@ -17,6 +22,17 @@ export default function ActivitiesComp({ date }) {
       });
   }, [date]);
 
+
+  function handleClick(id) {
+    postActivitiesBookings(token, id)
+      .then(() => {
+        toast("Atividade Reservada!")
+      })
+      .catch(err => { 
+        toast(err.response.data.message)
+      })
+  }
+
   return (
     <MainContainer>
       {activities.map((activity, index1) => (
@@ -24,18 +40,18 @@ export default function ActivitiesComp({ date }) {
           <Title>{activity.name}</Title>
           <ActivityContainer>
             {activity.Activities.map((lecture, index2) => (
-              <Activity key={index2} 
-                height={ new Date(lecture.endAt).getHours() - new Date(lecture.startAt).getHours()}>
+              <Activity key={index2}
+                height={new Date(lecture.endAt).getHours() - new Date(lecture.startAt).getHours()}>
                 <p><strong>{lecture.name}</strong>
-                <br />{dayjs(lecture.startAt).format('HH')}:{dayjs(lecture.startAt).format('mm')} - {dayjs(lecture.endAt).format('HH')}:{dayjs(lecture.endAt).format('mm')}</p>
+                  <br />{dayjs(lecture.startAt).format('HH')}:{dayjs(lecture.startAt).format('mm')} - {dayjs(lecture.endAt).format('HH')}:{dayjs(lecture.endAt).format('mm')}</p>
                 {lecture.capacity ?
-                  <Vacancies>
-                    <BiLogIn color="#078632" size={25}/>
+                  <Vacancies onClick={() => handleClick(activity.id)}>
+                    <BiLogIn color="#078632" size={25} />
                     <p>{lecture.capacity} vagas</p>
                   </Vacancies>
                   :
                   <Vacancies onClick={() => console.log("oi")}>
-                    <BiXCircle color="#CC6666" size={25}/>
+                    <BiXCircle color="#CC6666" size={25} />
                     <p>Esgotado</p>
                   </Vacancies>
                 }
