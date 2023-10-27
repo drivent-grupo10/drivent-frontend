@@ -8,7 +8,10 @@ import { BsPersonFill } from 'react-icons/bs'
 import useToken from "../../../hooks/useToken";
 import { getHotels } from "../../../services/hotelApi";
 import api from '../../../services/api';
+import useCreateBooking from "../../../hooks/api/useCreateBooking";
+import { toast } from "react-toastify";
 import useGetBooking from "../../../hooks/api/useGetBooking";
+import { updateBooking } from "../../../services/bookingApi";
 
 export default function Hotel() {
   const { ticket } = useGetTicket();
@@ -18,6 +21,11 @@ export default function Hotel() {
   const [hotelsWithRooms, setHotelsWithRooms] = useState([]);
   const [indexOfHotel, setIndexOfHotel] = useState(-1);
   const [indexOfRoom, setIndexOfRoom] = useState(-1);
+  const { booking } = useGetBooking();
+  const { createBooking } = useCreateBooking();
+  const [ changing, setChanging ] = useState(false);
+
+  console.log(booking)
 
   const arr = []
 
@@ -106,7 +114,44 @@ export default function Hotel() {
     return sum
   }
 
-  if (ticket) {
+  async function bookRoom(roomId) {
+    if (changing === true) {
+      try {
+        const body = { roomId }
+        await api.put(`/booking/${booking.id}}`, body, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+        toast('Reserva atualizada com sucesso!');
+        setTimeout(() => {
+          setChanging(false)
+          window.location.reload();
+        }, 2000);
+      } catch (err) {
+        toast('Não foi possível atualizar a Reserva! ');
+        console.log(err)
+      }
+    }else {
+      try {
+        const body = { roomId }
+        await createBooking(body);
+        toast('Reserva realizada com sucesso!');
+        setTimeout(() => {
+          window.location.reload();
+        }, 2000);
+      } catch (err) {
+        toast('Não foi possível fazer a Reserva! ');
+        console.log(err)
+      }
+    }
+  }
+
+  function changeRoom(){
+    setChanging(true)
+  }
+
+  if (ticket && booking === null || changing === true) {
     return (
       <>
         {ticket.status !== 'PAID' &&
@@ -164,9 +209,13 @@ export default function Hotel() {
                   selected={selectedRoom === r.id}
                 >
                   <SCRoomNumber full={(hotelsWithRooms[indexOfHotel].Rooms[i].Booking.length === r.capacity).toString()}>{r.name}</SCRoomNumber>
-                  {r.capacity === 1 &&
+                  {r.capacity === 1 && hotelsWithRooms[indexOfHotel].Rooms[i].Booking.length === 1 &&
                     <SCContainerPersonIcon>
-                      {hotelsWithRooms[indexOfHotel].Rooms[i].Booking.length === 1 ? <SCOccupiedRoom /> : <SCFreeRoom />}
+                      <SCOccupiedRoom />
+                    </SCContainerPersonIcon>}
+                    {r.capacity === 1 && hotelsWithRooms[indexOfHotel].Rooms[i].Booking.length === 0 &&
+                    <SCContainerPersonIcon>
+                      {selectedRoom === r.id ? <SCSeletedRoom /> : <SCFreeRoom />}
                     </SCContainerPersonIcon>}
                   {r.capacity === 2 && hotelsWithRooms[indexOfHotel].Rooms[i].Booking.length === 2 &&
                     <SCContainerPersonIcon>
@@ -175,13 +224,13 @@ export default function Hotel() {
                     </SCContainerPersonIcon>}
                   {r.capacity === 2 && hotelsWithRooms[indexOfHotel].Rooms[i].Booking.length === 1 &&
                     <SCContainerPersonIcon>
-                      <SCFreeRoom />
+                      {selectedRoom === r.id ? <SCSeletedRoom /> : <SCFreeRoom />}
                       <SCOccupiedRoom />
                     </SCContainerPersonIcon>}
                   {r.capacity === 2 && hotelsWithRooms[indexOfHotel].Rooms[i].Booking.length === 0 &&
                     <SCContainerPersonIcon>
                       <SCFreeRoom />
-                      <SCFreeRoom />
+                      {selectedRoom === r.id ? <SCSeletedRoom /> : <SCFreeRoom />}
                     </SCContainerPersonIcon>}
                   {r.capacity === 3 && hotelsWithRooms[indexOfHotel].Rooms[i].Booking.length === 3 &&
                     <SCContainerPersonIcon>
@@ -191,37 +240,56 @@ export default function Hotel() {
                     </SCContainerPersonIcon>}
                   {r.capacity === 3 && hotelsWithRooms[indexOfHotel].Rooms[i].Booking.length === 2 &&
                     <SCContainerPersonIcon>
-                      <SCFreeRoom />
+                      {selectedRoom === r.id ? <SCSeletedRoom /> : <SCFreeRoom />}
                       <SCOccupiedRoom />
                       <SCOccupiedRoom />
                     </SCContainerPersonIcon>}
                   {r.capacity === 3 && hotelsWithRooms[indexOfHotel].Rooms[i].Booking.length === 1 &&
                     <SCContainerPersonIcon>
                       <SCFreeRoom />
-                      <SCFreeRoom />
+                      {selectedRoom === r.id ? <SCSeletedRoom /> : <SCFreeRoom />}
                       <SCOccupiedRoom />
                     </SCContainerPersonIcon>}
                   {r.capacity === 3 && hotelsWithRooms[indexOfHotel].Rooms[i].Booking.length === 0 &&
                     <SCContainerPersonIcon>
                       <SCFreeRoom />
                       <SCFreeRoom />
-                      <SCFreeRoom />
+                      {selectedRoom === r.id ? <SCSeletedRoom /> : <SCFreeRoom />}
                     </SCContainerPersonIcon>}
                 </SCRoom>
               ))}
             </SCContainerRooms>
-          </>
-        }
-
-        {selectedHotel !== 0 && selectedRoom !== 0 &&
-          <>
-            <SCBookRoom>
+            <SCBookRoom onClick={() => bookRoom(selectedRoom)} selected={selectedRoom !== 0}>
               Reservar Quarto
             </SCBookRoom>
           </>
         }
       </>
     );
+  }
+
+  if (booking !== null && changing === false) {
+    return (
+      <>
+        <SCTitle>Escolha de Hotel e Quarto</SCTitle>
+        <SCSubTitle>Você já escolheu seu quarto:</SCSubTitle>
+        <SCContainer>
+          <SCContainerHotel>
+            <SCHotelImage src={booking.Room.Hotel.image} />
+            <SCHotelInfo>
+              {booking.Room.Hotel.name}
+              <SCStrongText>Quarto Reservado</SCStrongText>
+              <SCText>{booking.Room.name} ({booking.Room.capacity === 3 ? 'Triple' : booking.Room.capacity === 2 ? 'Double' : 'Single'})</SCText>
+              <SCStrongText>Pessoas no seu quarto</SCStrongText>
+              <SCText>{booking.Room.Booking.length === 2 ? 'Você e mais 2' : booking.Room.Booking.length === 1 ? 'Você e mais 1' : 'Somente você'}</SCText>
+            </SCHotelInfo>
+          </SCContainerHotel>
+        </SCContainer>
+        <SCCHangeRoom onClick={() => changeRoom()}>
+          TROCAR DE QUARTO
+        </SCCHangeRoom>
+      </>
+    )
   }
 }
 
@@ -387,7 +455,41 @@ const SCOccupiedRoom = styled(BsPersonFill)`
   height: 27px;
 `
 
+const SCSeletedRoom = styled(BsPersonFill)`
+  width: 27px;
+  height: 27px;
+
+  color: #e75480;
+`
+
 const SCBookRoom = styled.div`
+  width: 182px;
+  height: 37px;
+
+  border: none;
+  border-radius: 4px;
+
+  background-color: #E0E0E0;
+
+  font-family: 'Roboto', sans-serif;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 16px;
+  letter-spacing: 0em;
+  text-align: center;
+
+  color: #000000;
+
+  display: ${props => props.selected ? 'flex' : 'none'};
+  justify-content: center;
+  align-items: center;
+
+  margin-top: 46px;
+
+  cursor: pointer;
+`
+
+const SCCHangeRoom = styled.div`
   width: 182px;
   height: 37px;
 
