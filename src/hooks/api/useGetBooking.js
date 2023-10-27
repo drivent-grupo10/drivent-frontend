@@ -6,16 +6,16 @@ export default function useGetBooking() {
     const token = useToken();
 
   const {
-    data: bookings,
-    loading: bookingsLoading,
-    error: bookingsError,
-    act: getBookings
+    data: booking,
+    loading: bookingLoading,
+    error: bookingError,
+    act: getBooking
   } = useAsync(() => bookingApi.getBooking(token));
 
   return {
-    bookings,
-    bookingsLoading,
-    bookingsError,
-    getBookings
+    booking,
+    bookingLoading,
+    bookingError,
+    getBooking
   };
 }
