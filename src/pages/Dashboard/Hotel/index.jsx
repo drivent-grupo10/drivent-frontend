@@ -281,7 +281,7 @@ export default function Hotel() {
               <SCStrongText>Quarto Reservado</SCStrongText>
               <SCText>{booking.Room.name} ({booking.Room.capacity === 3 ? 'Triple' : booking.Room.capacity === 2 ? 'Double' : 'Single'})</SCText>
               <SCStrongText>Pessoas no seu quarto</SCStrongText>
-              <SCText>{booking.Room.Booking.length === 2 ? 'Você e mais 2' : booking.Room.Booking.length === 1 ? 'Você e mais 1' : 'Somente você'}</SCText>
+              <SCText>{booking.Room.Booking.length === 3 ? 'Você e mais 2' : booking.Room.Booking.length === 2 ? 'Você e mais 1' : 'Somente você'}</SCText>
             </SCHotelInfo>
           </SCContainerHotel>
         </SCContainer>
