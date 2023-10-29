@@ -2,58 +2,57 @@ import styled from 'styled-components';
 import useGetTicket from '../../../hooks/api/useGetTicket';
 import { useEffect, useState } from 'react';
 import useGetActivityDays from '../../../hooks/api/useGetActivities';
-import useGetActivityOfDay from '../../../hooks/api/useGetActivitieOfDay';
+//import useGetActivityOfDay from '../../../hooks/api/useGetActivitieOfDay';
 import dayjs from 'dayjs';
 import './pt'
 import customParseFormat from 'dayjs/plugin/customParseFormat';
+import ActivitiesComp from "../../../components/ActivitiesComponent/ActivitiesComp";
 
 dayjs.locale('pt');
 
 dayjs.extend(customParseFormat);
 
 
-function convertData(arraydata) {
+/* function convertData(arraydata) {
+  console.log('veio o body')
+  console.log(arraydata)
   for (let i = 0; i < arraydata.length; i++) {
-    arraydata[i].startAt = dayjs(arraydata[i].startAt).format();
-    arraydata[i].endAt = dayjs(arraydata[i].endAt).format();
-    arraydata[i].createdAt = dayjs(arraydata[i].createdAt).format();
-    arraydata[i].updatedAt = dayjs(arraydata[i].updatedAt).format();
-    arraydata[i].Auditory.createdAt = dayjs(arraydata[i].Auditory.createdAt).format();
-    arraydata[i].Auditory.createdAt = arraydata[i].Auditory.createdAt.slice(0, 10);
-    arraydata[i].Auditory.updatedAt = dayjs(arraydata[i].Auditory.updatedAt).format();
-    arraydata[i].Auditory.updatedAt = arraydata[i].Auditory.updatedAt.slice(0, 10);
-    arraydata[i].createdAt = arraydata[i].createdAt.slice(0, 10);
-    arraydata[i].endAt = arraydata[i].endAt.slice(0, 10);
-    arraydata[i].startAt = arraydata[i].startAt.slice(0, 10);
-    arraydata[i].updatedAt = arraydata[i].updatedAt.slice(0, 10);
-
+    arraydata[i].date_trunc = dayjs(arraydata[i].date_trunc).format('YYYY-MM-DD');
   }
+  console.log('apos formatar')
+  console.log(arraydata);
   return arraydata;
-}
+} */
 
 export default function Activities() {
   const [dateData, setDateData] = useState(null);
   const [selectedDay, setSelectedDay] = useState(null);
   const { getactivitydays } = useGetActivityDays();
-  const { getactivityofday } = useGetActivityOfDay();
-  const [data, setData] = useState();
+  //const { getactivityofday } = useGetActivityOfDay();
+  //const [data, setData] = useState();
 
   const { ticket } = useGetTicket();
 
   useEffect(() => {
     getactivitydays()
       .then((res) => {
-        const data = convertData(res);
-        console.log(data)
-        setDateData(data);
+        console.log(res)
+        let arr = [];
+        for (let i = 0; i < res.length; i++) {
+          arr[i] = dayjs(res[i].date_trunc.slice(0, -15)).format('YYYY-MM-DD');
+        }
+        console.log(arr)
+        
+        setDateData(arr);
       });
   }, []);
 
-  useEffect(() => {
-    if (selectedDay) {
+/*   useEffect(() => {
+     if (selectedDay) {
       getactivityofday(selectedDay).then((res) => { setData(res); });
-    };
-  }, [selectedDay]);
+    }; 
+    console.log('dia selecionado ' + selectedDay)
+  }, [selectedDay]); */
 
   if (!ticket) {
     return (
@@ -106,7 +105,7 @@ export default function Activities() {
             key={index}
             selected={selectedDay === el}
             onClick={() => { setSelectedDay(el); }}>
-            {new Date(el.startAt)
+            {new Date(el)
               .toLocaleDateString('pt-BR', {
                 weekday: 'long',
                 day: 'numeric',
@@ -116,9 +115,7 @@ export default function Activities() {
           </ActivityDate>;
         })}
       </ContainerSecond>
-      {selectedDay == null ? null : <GridVenue>
-        {console.log(data)}
-      </GridVenue>}
+      { selectedDay == null ? null : <ActivitiesComp date={selectedDay}/> }
     </Container>
   )
 }
@@ -127,7 +124,7 @@ export default function Activities() {
 const Container = styled.div`
   h1 {
     font-size: 34px;
-    margin-bottom: 30px;
+    margin-bottom: 20px;
   }
   height: 100%;
 `;
@@ -175,9 +172,8 @@ const ContainerSecond = styled.div`
   width: 420px;
   display: flex;
   align-items: center;
-  justify-content: space-between;
   gap: 17px;
-  margin-bottom: 60px;
+  margin-bottom: 10px;
 `;
 
 const ActivityDate = styled.div`
@@ -199,10 +195,11 @@ const ActivityDate = styled.div`
   text-align: center;
 `;
 
-const GridVenue = styled.div`
+/* const GridVenue = styled.div`
   display: flex;
   min-height: 365px;
   height: auto;
   width: 100%;
   margin: 0 0 55px 0;
 `;
+ */

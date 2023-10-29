@@ -19,3 +19,13 @@ export async function getActivitiesOfDay(date, token) {
   });
   return response.data;
 }
+
+export async function getActivitiesByPlace(token, date) {
+  //console.log(date.startAt)
+  const response = await api.get(`/activities/${date}`, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+  return response.data;
+}
