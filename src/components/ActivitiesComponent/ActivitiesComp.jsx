@@ -10,6 +10,7 @@ import { postActivitiesBookings } from "../../services/activitiesApi";
 export default function ActivitiesComp({ date }) {
   //console.log("Data: " + date)
   const [activities, setActivities] = useState([]);
+  const [selected, setSelected] = useState(null);
   const token = useToken();
 
   const { getActivitiesPlace } = useGetActivityByPlace(date);
@@ -24,10 +25,14 @@ export default function ActivitiesComp({ date }) {
 
 
   function handleClick(id) {
+    setSelected(id);
     //console.log(id)
     postActivitiesBookings(token, id)
       .then(() => {
         toast("Atividade Reservada!")
+        setTimeout(() => {
+          window.location.reload();
+        }, 2000);
       })
       .catch(err => { 
         toast(err.response.data.message)
@@ -42,6 +47,8 @@ export default function ActivitiesComp({ date }) {
           <ActivityContainer>
             {activity.Activities.map((lecture, index2) => (
               <Activity key={index2}
+                background={selected}
+                id={lecture.id}
                 height={new Date(lecture.endAt).getHours() - new Date(lecture.startAt).getHours()}>
                 <p><strong>{lecture.name}</strong>
                   <br />{dayjs(lecture.startAt).format('HH')}:{dayjs(lecture.startAt).format('mm')} - {dayjs(lecture.endAt).format('HH')}:{dayjs(lecture.endAt).format('mm')}</p>
@@ -51,7 +58,7 @@ export default function ActivitiesComp({ date }) {
                     <p>{lecture.capacity} vagas</p>
                   </Vacancies>
                   :
-                  <Vacancies onClick={() => console.log("oi")}>
+                  <Vacancies onClick={() => toast("Não há vagas!")}>
                     <BiXCircle color="#CC6666" size={25} />
                     <p>Esgotado</p>
                   </Vacancies>
@@ -100,7 +107,7 @@ const Activity = styled.button`
   position: relative;
   justify-content: space-between;
   width: 270px;
-  background-color: #F1F1F1;
+  background-color: ${props => props.background === props.id ? '#D0FFDB' : '#F1F1F1'};
   padding: 10px;
   border-radius: 5px;
   height: ${props => 80 * props.height}px;

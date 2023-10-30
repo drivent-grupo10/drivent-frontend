@@ -2,7 +2,6 @@ import styled from 'styled-components';
 import useGetTicket from '../../../hooks/api/useGetTicket';
 import { useEffect, useState } from 'react';
 import useGetActivityDays from '../../../hooks/api/useGetActivities';
-//import useGetActivityOfDay from '../../../hooks/api/useGetActivitieOfDay';
 import dayjs from 'dayjs';
 import './pt'
 import customParseFormat from 'dayjs/plugin/customParseFormat';
@@ -13,46 +12,24 @@ dayjs.locale('pt');
 dayjs.extend(customParseFormat);
 
 
-/* function convertData(arraydata) {
-  console.log('veio o body')
-  console.log(arraydata)
-  for (let i = 0; i < arraydata.length; i++) {
-    arraydata[i].date_trunc = dayjs(arraydata[i].date_trunc).format('YYYY-MM-DD');
-  }
-  console.log('apos formatar')
-  console.log(arraydata);
-  return arraydata;
-} */
-
 export default function Activities() {
   const [dateData, setDateData] = useState(null);
   const [selectedDay, setSelectedDay] = useState(null);
   const { getactivitydays } = useGetActivityDays();
-  //const { getactivityofday } = useGetActivityOfDay();
-  //const [data, setData] = useState();
 
   const { ticket } = useGetTicket();
 
   useEffect(() => {
     getactivitydays()
       .then((res) => {
-        console.log(res)
         let arr = [];
         for (let i = 0; i < res.length; i++) {
           arr[i] = dayjs(res[i].date_trunc.slice(0, -15)).format('YYYY-MM-DD');
         }
-        console.log(arr)
-        
         setDateData(arr);
       });
   }, []);
 
-/*   useEffect(() => {
-     if (selectedDay) {
-      getactivityofday(selectedDay).then((res) => { setData(res); });
-    }; 
-    console.log('dia selecionado ' + selectedDay)
-  }, [selectedDay]); */
 
   if (!ticket) {
     return (
@@ -105,13 +82,7 @@ export default function Activities() {
             key={index}
             selected={selectedDay === el}
             onClick={() => { setSelectedDay(el); }}>
-            {new Date(el)
-              .toLocaleDateString('pt-BR', {
-                weekday: 'long',
-                day: 'numeric',
-                month: 'numeric',
-              })
-              .replace('-feira', '')}
+            {dayjs(el).locale('pt').format("dddd, DD/MM").replace("-feira", "")}
           </ActivityDate>;
         })}
       </ContainerSecond>
